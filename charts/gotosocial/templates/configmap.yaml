@@ -10,12 +10,14 @@ data:
   GTS_HOST: {{ $.Values.host | quote }}
   GTS_DB_TYPE: {{ $.Values.db.type | quote }}
   GTS_LOG_LEVEL: {{ $.Values.log.level | quote }}
+  GTS_LOG_FORMAT: {{ $.Values.log.format | quote }}
   GTS_LOG_DB_QUERIES: {{ $.Values.log.dbQueries | quote }}
   GTS_LOG_CLIENT_IP: {{ $.Values.log.clientIP | quote }}
   GTS_LOG_TIMESTAMP_FORMAT: {{ $.Values.log.timestampFormat | quote }}
   GTS_APPLICATION_NAME: {{ $.Values.applicationName | quote }}
   GTS_LANDING_PAGE_USER: {{ $.Values.landingPageUser | quote }}
   GTS_ACCOUNT_DOMAIN: {{ $.Values.accountDomain | quote }}
+  GTS_WAZERO_COMPILATION_CACHE: /gotosocial/.cache
   # setting these statically since they don't really make sense in a k8s/docker context
   GTS_BIND_ADDRESS: "0.0.0.0"
   GTS_PORT: "8080"

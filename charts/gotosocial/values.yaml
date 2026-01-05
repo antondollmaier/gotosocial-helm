@@ -22,14 +22,23 @@ log:
   dbQueries: false
   # -- log the client IP
   clientIP: true
+  # -- define the log format (json or logfmt)
+  format: "json"
   # -- format of the timestamps (go syntax)
-  timestampFormat: 02/01/2006 15:04:05.000
+  timestampFormat: "2006-01-02T15:04:05.000Z07:00"
 
 db:
   # -- the type of the database (sqlite or postgres)
   type: "sqlite"
   # -- path to the sqlite database file, or the hostname of the postgresql server
   address: /gotosocial/storage/sqlite.db
+  # -- PostgreSQL username
+  user: ""
+  # -- PostgreSQL password
+  password: ""
+  # -- PostgreSQL database
+  database: ""
+
 tls:
   # -- enable the internal letsencrypt handling
   enabled: false

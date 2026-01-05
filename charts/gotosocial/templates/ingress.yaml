@@ -1,7 +1,7 @@
 {{- if $.Values.ingress.enabled -}}
 ---
 {{- $fullName := include "gotosocial.fullname" $ -}}
-{{- $svcPort := 8080 -}}
+{{- $svcPort := include "gotosocial.port" $ -}}
 {{- if and $.Values.ingress.className (not (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey $.Values.ingress.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set $.Values.ingress.annotations "kubernetes.io/ingress.class" $.Values.ingress.className}}
@@ -45,14 +45,14 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: defaultbackend
+                name: "{{ $fullName }}-denied"
                 port:
                   number: 80
           - path: /readyz
             pathType: ImplementationSpecific
             backend:
               service:
-                name: defaultbackend
+                name: "{{ $fullName }}-denied"
                 port:
                   number: 80
           {{- range .paths }}
@@ -65,7 +65,7 @@ spec:
               service:
                 name: {{ $fullName }}
                 port:
-                  number: {{ $svcPort }}
+                  name: http
               {{- else }}
               serviceName: {{ $fullName }}
               servicePort: {{ $svcPort }}
