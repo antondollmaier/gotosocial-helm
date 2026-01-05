@@ -1,71 +1,93 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "gotosocial.fullname" . }}
+  name: {{ include "gotosocial.fullname" $ }}
   labels:
-    {{- include "gotosocial.labels" . | nindent 4 }}
+    {{- include "gotosocial.labels" $ | nindent 4 }}
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
-      {{- include "gotosocial.selectorLabels" . | nindent 6 }}
+      {{- include "gotosocial.selectorLabels" $ | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") $ | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
+        {{- with $.Values.podAnnotations }}
+        {{- toYaml . | indent 8 }}
+        {{- end }}
       labels:
-        {{- include "gotosocial.selectorLabels" . | nindent 8 }}
+        {{- include "gotosocial.selectorLabels" $ | nindent 8 }}
     spec:
-      {{- with .Values.image.pullSecrets }}
+      {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "gotosocial.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "gotosocial.serviceAccountName" $ }}
+      securityContext: {{- toYaml $.Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- include "gotosocial.env" . | nindent 10 }}
+          securityContext: {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          envFrom:
+            - configMapRef:
+                name: {{ include "gotosocial.fullname" $ | quote }}
+            - secretRef:
+                name: {{ include "gotosocial.fullname" $ | quote }}
           volumeMounts:
           - name: data
             mountPath: /gotosocial/storage
+            subPath: storage
+          - name: data
+            mountPath: /gotosocial/.cache
+            subPath: cache
           ports:
             - name: http
-              containerPort: {{ include "gotosocial.port" . }}
+              containerPort: {{ include "gotosocial.port" $ }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /livez
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /readyz
               port: http
+          startupProbe:
+            httpGet:
+              path: /livez
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+            {{- toYaml $.Values.resources | nindent 12 }}
+      {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with $.Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with $.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-      {{- if .Values.storage.local.enabled }}
+      {{- if $.Values.storage.local.enabled }}
       - name: data
         persistentVolumeClaim:
-          claimName: {{ include "gotosocial.datapvc" . }}
+          claimName: {{ include "gotosocial.datapvc" $ }}
       {{- else }}
       - name: data
         emptyDir: {}

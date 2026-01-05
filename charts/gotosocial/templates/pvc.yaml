@@ -1,21 +1,20 @@
-{{- if .Values.storage.local.enabled }}
+---
+{{- if $.Values.storage.local.enabled }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ include "gotosocial.datapvc" . }}
-  annotations:
-    {{- .Values.storage.local.annotations | toYaml | nindent 4}}
+  name: {{ include "gotosocial.datapvc" $ }}
+  annotations: {{- $.Values.storage.local.annotations | toYaml | nindent 4 }}
 spec:
-  accessModes:
-    {{- .Values.storage.local.accessModes | toYaml | nindent 4 }}
+  accessModes: {{- $.Values.storage.local.accessModes | toYaml | nindent 4 }}
   volumeMode: Filesystem
-  {{- if .Values.storage.local.class }}
-  storageClassName: {{ .Values.storage.local.class }}
+  {{- if $.Values.storage.local.class }}
+  storageClassName: {{ $.Values.storage.local.class }}
   {{- end }}
-  {{- with .Values.storage.local.volumeName }}
+  {{- with $.Values.storage.local.volumeName }}
   volumeName: {{ . }}
   {{- end }}
   resources:
     requests:
-      storage: {{ .Values.storage.local.size }}
+      storage: {{ $.Values.storage.local.size }}
 {{- end }}

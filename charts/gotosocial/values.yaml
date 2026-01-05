@@ -1,56 +1,85 @@
+---
 # Default values for gotosocial.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-host: null # chart-example.local
+# -- Host to serve this instance from
+host: null
+
+# -- the GoToSocial application name
 applicationName: gotosocial
+# -- the user to display as the landingpage
 landingPageUser: ""
-acountDomain: ""
+# -- separate domain for the account names? https://docs.gotosocial.org/en/latest/advanced/host-account-domain/
+accountDomain: ""
+# -- the default timezone
 timezone: "UTC"
 
-
 log:
+  # -- the log level to use
   level: info
+  # -- log database queries as well
   dbQueries: false
+  # -- log the client IP
   clientIP: true
+  # -- format of the timestamps (go syntax)
   timestampFormat: 02/01/2006 15:04:05.000
 
 db:
+  # -- the type of the database (sqlite or postgres)
   type: "sqlite"
+  # -- path to the sqlite database file, or the hostname of the postgresql server
   address: /gotosocial/storage/sqlite.db
 tls:
+  # -- enable the internal letsencrypt handling
   enabled: false
+  # -- email for letsencrypt
   email: ""
 
-# define arbitrary environment variables for the GoToSocial application
+# -- define arbitrary environment variables for the GoToSocial application
 # this is especially useful if you want to leverage GoToSocial functionality
-# that is not yet supported by "normal" chart values (please open an issue/PR if you'd like "real" support) 
-env:
+# that is not yet supported by "normal" chart values (please open an issue/PR if you'd like "real" support)
+env: {}
 #  FOO: bar
 
+# -- env variables are clearly exposed in a ConfigMap. For sensitive values, define them as a Secret here.
+secrets: {}
+
 image:
+  # -- registry repository URL
   repository: superseriousbusiness/gotosocial
+  # -- define the PullPolicy (IfNotPresent, Always)
   pullPolicy: IfNotPresent
+  # -- tag of the image
   tag: latest
+  # -- reference the names to any manually created pull secrets here
   pullSecrets: []
 
 storage:
   local:
+    # -- enable the local storage?
     enabled: true
+    # -- any existing PVC name?
     claimName: null
+    # -- accessModes of the PV. We have only one replica, so ReadWriteOnce is okay.
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
+    # -- additional labels
     labels: {}
+    # -- define the storage class
     class:
+    # -- any annotations to add?
     annotations:
       helm.sh/resource-policy: keep
+    # -- size of the local volume
     size: 10Gi
-  s3: #todo no implemented yet
+  s3:
+    # -- todo not yet implemented
     enabled: false
 
-
-
+# -- shall the name be overidden?
 nameOverride: ""
+# -- override the full chart name
 fullnameOverride: ""
 
 serviceAccount:
@@ -64,9 +93,11 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+# -- any securitycontext of the pod. As a default, set the fsGroup to 1000 if you enable local storage!
+podSecurityContext:
+  fsGroup: 1000
 
+# -- the container security context.
 securityContext: {}
   # capabilities:
   #   drop:
@@ -76,29 +107,35 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
+  # -- the type of the service to expose
   type: ClusterIP
 
 ingress:
+  # -- enable the ingress
   enabled: false
+  # -- specify the className of the Ingress
   className: ""
+  # -- add annotations to the Ingress, e.g.. for cert-manager.io or similar
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  # -- which hosts shall be exposed?
   hosts: []
   # - host: chart-example.local
   #   paths:
   #   - path: /
   #     pathType: Prefix
+  # -- configure TLS here
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #    - chart-example.local
 
+# -- We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
@@ -106,8 +143,11 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+# -- add a node selector to the deployment
 nodeSelector: {}
 
+# -- tolerations of the deployment
 tolerations: []
 
+# -- affinity rules for the deployment
 affinity: {}
